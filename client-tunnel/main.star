@@ -42,26 +42,17 @@ def run(plan, args):
         )
     )
 
-    front_door_chisel = plan.add_service(
-        name = "front-door-chisel",
+    front_to_engine_chisel_connection = engine_chisel_server.ip_address + ":" + str(engine_chisel_server.ports["chisel-server"].number)
+    front_to_engine_tunnel = "0.0.0.0" + ":" + "9200" + engine_chisel_server.ip_address + ":" + str(engine_chisel_server.ports["chisel-server"].number)
+
+    front_door_chisel_client = plan.add_service(
+        name = "front-door-chisel-client",
         config = ServiceConfig(
             image = "jpillora/chisel:latest",
-            cmd = ["server", "--port", "9200"],
+            cmd = ["client", front_to_engine_chisel_connection, front_to_engine_tunnel],
             ports = {
-                "chisel-server": PortSpec(9200, application_protocol="tcp")
-            },
-
-        )
-    )
-
-    chisel_connection = front_door_chisel.ip_address + ":" + str(front_door_chisel.ports["chisel-server"].number)
-    front_door_to_engine_tunnel = "0.0.0.0" + ":" + "9201" + engine_chisel_server.ip_address + ":" + str(engine_chisel_server.ports["chisel-server"].number)
-
-    engine_chisel_client = plan.add_service(
-        name = "engine-chisel-client",
-        config = ServiceConfig(
-            image = "jpillora/chisel:latest",
-            cmd = ["client", chisel_connection, front_door_to_engine_tunnel],
+                "chisel-tunnel": PortSpec(9200, application_protocol="tcp")
+            }
         )
     )
 
