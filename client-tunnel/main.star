@@ -1,6 +1,37 @@
 
+POSTGRES_DB = "app_db"
+POSTGRES_USER = "app_user"
+POSTGRES_PASSWORD = "password"
 
 def run(plan, args):
+
+    udp_listener = plan.add_service(
+        name = "udp-listener",
+        config = ServiceConfig(
+            image = "mendhak/udp-listener",
+            ports = {
+                "udp-listener": PortSpec(4444, transport_protocol="UDP", application_protocol="udp")
+            },
+            env_vars = {
+                "UDPPORT": "4444"
+            }
+        )
+    )
+
+    postgres = plan.add_service(
+        name = "postgres",
+        config = ServiceConfig(
+            image = "postgres:15.2-alpine",
+            ports = {
+                "postgresql": PortSpec(5432, application_protocol = "postgresql"),
+            },
+            env_vars = {
+                "POSTGRES_DB": POSTGRES_DB,
+                "POSTGRES_USER": POSTGRES_USER,
+                "POSTGRES_PASSWORD": POSTGRES_PASSWORD,
+            },
+        ),
+    )
 
     html1 = plan.upload_files("./data/web1/index.html")
     html2 = plan.upload_files("./data/web2/index.html")
